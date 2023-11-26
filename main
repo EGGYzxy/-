@@ -1,0 +1,95 @@
+import pygame
+import random
+
+# 游戏区域大小
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
+# 蛇身和食物大小
+CELL_SIZE = 20
+
+# 颜色定义
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+# 初始化Pygame
+pygame.init()
+
+# 创建游戏窗口
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("贪吃蛇游戏")
+
+# 设置游戏时钟
+clock = pygame.time.Clock()
+
+# 游戏结束标志
+game_over = False
+
+# 蛇的初始位置和速度
+snake_pos = [[SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2]]
+snake_speed = [CELL_SIZE, 0]
+
+# 食物的初始位置
+food_pos = [random.randint(0, (SCREEN_WIDTH - CELL_SIZE) // CELL_SIZE) * CELL_SIZE,
+            random.randint(0, (SCREEN_HEIGHT - CELL_SIZE) // CELL_SIZE) * CELL_SIZE]
+
+# 渲染游戏界面
+def render_game():
+    screen.fill(BLACK)
+    for pos in snake_pos:
+        pygame.draw.rect(screen, GREEN, pygame.Rect(pos[0], pos[1], CELL_SIZE, CELL_SIZE))
+    pygame.draw.rect(screen, RED, pygame.Rect(food_pos[0], food_pos[1], CELL_SIZE, CELL_SIZE))
+    pygame.display.flip()
+
+# 检查游戏是否结束
+def check_game_over():
+    # 判断蛇是否撞墙
+    if snake_pos[0][0] < 0 or snake_pos[0][0] >= SCREEN_WIDTH or snake_pos[0][1] < 0 or snake_pos[0][1] >= SCREEN_HEIGHT:
+        return True
+    # 判断蛇是否撞到自己
+    if snake_pos[0] in snake_pos[1:]:
+        return True
+    return False
+
+# 游戏循环
+while not game_over:
+    # 获取事件
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game_over = True
+
+    # 获取键盘输入，控制蛇的移动方向
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and snake_speed[1] != CELL_SIZE:
+        snake_speed = [0, -CELL_SIZE]
+    if keys[pygame.K_DOWN] and snake_speed[1] != -CELL_SIZE:
+        snake_speed = [0, CELL_SIZE]
+    if keys[pygame.K_LEFT] and snake_speed[0] != CELL_SIZE:
+        snake_speed = [-CELL_SIZE, 0]
+    if keys[pygame.K_RIGHT] and snake_speed[0] != -CELL_SIZE:
+        snake_speed = [CELL_SIZE, 0]
+
+    # 更新蛇头位置和身体
+    new_snake_pos = [snake_pos[0][0] + snake_speed[0], snake_pos[0][1] + snake_speed[1]]
+    snake_pos.insert(0, new_snake_pos)
+    if new_snake_pos == food_pos:
+        # 如果蛇吃到食物，生成新的食物位置
+        food_pos = [random.randint(0, (SCREEN_WIDTH - CELL_SIZE) // CELL_SIZE) * CELL_SIZE,
+                    random.randint(0, (SCREEN_HEIGHT - CELL_SIZE) // CELL_SIZE) * CELL_SIZE]
+    else:
+        # 如果蛇没有吃到食物，删除蛇尾
+        snake_pos.pop()
+
+    # 检查游戏是否结束
+    game_over = check_game_over()
+
+    # 渲染游戏界面
+    render_game()
+
+    # 控制游戏帧数为15
+    clock.tick(15)
+
+# 退出游戏
+pygame.quit()
